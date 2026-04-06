@@ -9,8 +9,10 @@ const rateLimit = require('express-rate-limit');
 
 const supabase = require('../config/supabase');
 
-const leadsRouter  = require('./routes/leads');
-const healthRouter = require('./routes/health');
+const leadsRouter    = require('./routes/leads');
+const healthRouter   = require('./routes/health');
+const webhooksRouter = require('./routes/webhooks');
+const outreachRouter = require('./routes/outreach');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -58,6 +60,8 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // ── Routes ────────────────────────────────────────────────────
 app.use('/health', healthRouter);
 app.use('/api/leads', leadsRouter);
+app.use('/webhooks', webhooksRouter);
+app.use('/api/outreach', outreachRouter);
 
 // ── 404 ───────────────────────────────────────────────────────
 app.use((req, res) => {
