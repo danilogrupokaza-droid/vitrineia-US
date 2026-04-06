@@ -20,7 +20,17 @@ const PORT = process.env.PORT || 3000;
 
 // ── Security ──────────────────────────────────────────────────
 app.use(helmet());
-app.use(cors({ origin: process.env.APP_URL }));
+const allowedOrigins = [process.env.APP_URL, /\.vercel\.app$/, 'http://localhost:3000'].filter(Boolean);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowed = allowedOrigins.some(o => o instanceof RegExp ? o.test(origin) : o === origin);
+    callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
+  },
+  methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 
 // ── Rate limiting ────────────────────────────────────────────
 const limiter = rateLimit({
