@@ -9,32 +9,43 @@ const cors    = require('cors');
 const morgan  = require('morgan');
 const rateLimit = require('express-rate-limit');
 
-// Supabase is initialised here so the REGION guard runs at boot.
 const supabase = require('../config/supabase');
 
-const leadsRouter    = require('./routes/leads');
-const healthRouter   = require('./routes/health');
+const leadsRouter  = require('./routes/leads');
+const healthRouter = require('./routes/health');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ── Security ──────────────────────────────────────────────────
-app.use(helmet());
-const allowedOrigins = [process.env.APP_URL, /\.vercel\.app$/, 'http://localhost:3000'].filter(Boolean);
-app.use(cors({
+// ── CORS – allow all vercel.app subdomains + localhost ────────
+const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    const allowed = allowedOrigins.some(o => o instanceof RegExp ? o.test(origin) : o === origin);
-    callback(allowed ? null : new Error('Not allowed by CORS'), allowed);
+    // Allow: no origin (curl/Postman), localhost, any vercel.app subdomain
+    if (
+      !origin ||
+      origin.startsWith('http://localhost') ||
+      origin.endsWith('.vercel.app') ||
+      origin === process.env.APP_URL
+    ) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-}));
+  optionsSuccessStatus: 204,
+};
 
-// ── Rate limiting ────────────────────────────────────────────
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // preflight for all routes
+
+// ── Security ──────────────────────────────────────────────────
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+// ── Rate limiting ─────────────────────────────────────────────
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
+  windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
@@ -42,15 +53,15 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// ── Parsing & logging ────────────────────────────────────────
+// ── Parsing & logging ─────────────────────────────────────────
 app.use(express.json({ limit: '50kb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// ── Routes ───────────────────────────────────────────────────
+// ── Routes ────────────────────────────────────────────────────
 app.use('/health', healthRouter);
 app.use('/api/leads', leadsRouter);
 
-// ── 404 ──────────────────────────────────────────────────────
+// ── 404 ───────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found.' });
 });
