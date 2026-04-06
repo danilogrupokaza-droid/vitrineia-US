@@ -3,10 +3,8 @@
 
 require('dotenv').config();
 
-const express = require('express');
-const helmet  = require('helmet');
-const cors    = require('cors');
-const morgan  = require('morgan');
+const express   = require('express');
+const morgan    = require('morgan');
 const rateLimit = require('express-rate-limit');
 
 const supabase = require('../config/supabase');
@@ -17,31 +15,31 @@ const healthRouter = require('./routes/health');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ── CORS – allow all vercel.app subdomains + localhost ────────
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow: no origin (curl/Postman), localhost, any vercel.app subdomain
-    if (
-      !origin ||
-      origin.startsWith('http://localhost') ||
-      origin.endsWith('.vercel.app') ||
-      origin === process.env.APP_URL
-    ) {
-      return callback(null, true);
-    }
-    callback(new Error('Not allowed by CORS'));
-  },
-  methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 204,
-};
+// ── CORS manual (before everything, including helmet) ─────────
+// This runs first so no other middleware can override the headers.
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '';
+  const allowed =
+    !origin ||
+    origin.startsWith('http://localhost') ||
+    origin.endsWith('.vercel.app') ||
+    origin === process.env.APP_URL;
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // preflight for all routes
+  if (allowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Vary', 'Origin');
+  }
 
-// ── Security ──────────────────────────────────────────────────
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+  // Respond to preflight immediately
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 // ── Rate limiting ─────────────────────────────────────────────
 const limiter = rateLimit({
