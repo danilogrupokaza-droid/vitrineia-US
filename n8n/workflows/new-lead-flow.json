@@ -1,0 +1,132 @@
+{
+  "name": "VitrineIA US – New Lead Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-lead",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook – New Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "vitrineia-us-new-lead"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.API_URL }}/api/leads/{{ $json.lead_id }}",
+        "options": {}
+      },
+      "id": "fetch-lead",
+      "name": "Fetch Lead Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.sms_consent }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equal" }
+            }
+          ]
+        }
+      },
+      "id": "check-sms-consent",
+      "name": "Has SMS Consent?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.API_URL }}/api/outreach/sms",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "lead_id",  "value": "={{ $json.id }}" },
+            { "name": "channel",  "value": "sms" },
+            { "name": "step",     "value": 0 },
+            { "name": "agent",    "value": "sofia" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sofia-sms",
+      "name": "Sofia – Send Welcome SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.API_URL }}/api/outreach/email",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "lead_id",  "value": "={{ $json.id }}" },
+            { "name": "channel",  "value": "email" },
+            { "name": "step",     "value": 0 },
+            { "name": "agent",    "value": "sofia" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "sofia-email",
+      "name": "Sofia – Send Welcome Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 420]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.API_URL }}/api/leads/{{ $json.id }}/status",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "status", "value": "contacted" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "update-status",
+      "name": "Update Lead Status → contacted",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Webhook – New Lead": {
+      "main": [[{ "node": "Fetch Lead Details", "type": "main", "index": 0 }]]
+    },
+    "Fetch Lead Details": {
+      "main": [[{ "node": "Has SMS Consent?", "type": "main", "index": 0 }]]
+    },
+    "Has SMS Consent?": {
+      "main": [
+        [{ "node": "Sofia – Send Welcome SMS",   "type": "main", "index": 0 }],
+        [{ "node": "Sofia – Send Welcome Email",  "type": "main", "index": 0 }]
+      ]
+    },
+    "Sofia – Send Welcome SMS": {
+      "main": [[{ "node": "Sofia – Send Welcome Email", "type": "main", "index": 0 }]]
+    },
+    "Sofia – Send Welcome Email": {
+      "main": [[{ "node": "Update Lead Status → contacted", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "vitrineia-us" }]
+}
