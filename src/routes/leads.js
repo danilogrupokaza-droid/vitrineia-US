@@ -82,6 +82,33 @@ router.post('/', async (req, res) => {
     region:     'US',
   });
 
+  // Auto-create follow-up sequence
+  try {
+    const { data: business } = await supabase
+      .from('businesses')
+      .select('niche, plan')
+      .eq('id', lead.business_id)
+      .maybeSingle();
+
+    const template = `${business?.niche || 'med_spa'}_${business?.plan || 'starter'}`;
+    const nextRunAt = new Date(Date.now() + 2 * 60 * 1000).toISOString(); // 2 min
+
+    await supabase.from('sequences').insert({
+      id:           require('uuid').v4(),
+      lead_id:      lead.id,
+      business_id:  lead.business_id,
+      template,
+      status:       'active',
+      current_step: 0,
+      next_run_at:  nextRunAt,
+      region:       'US',
+    });
+    console.log(`[leads] Sequence created for lead ${lead.id}`);
+  } catch (seqErr) {
+    console.error('[leads] Failed to create sequence:', seqErr.message);
+    // Don't fail the request if sequence creation fails
+  }
+
   return res.status(201).json({ lead_id: lead.id, status: 'new' });
 });
 
