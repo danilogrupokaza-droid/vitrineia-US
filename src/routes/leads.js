@@ -12,13 +12,14 @@ const router = express.Router();
 const LeadSchema = z.object({
   full_name:    z.string().min(2).max(100),
   email:        z.string().email(),
+  // Canada and US share the +1 country code — E.164 format
   phone:        z.string().regex(/^\+1\d{10}$/, 'Phone must be in E.164 format: +1XXXXXXXXXX'),
   business_id:  z.string().uuid(),
   source:       z.enum(['instagram', 'cold_email', 'referral', 'organic', 'paid', 'other']).default('other'),
   notes:        z.string().max(500).optional(),
-  // TCPA consent – required for SMS in the US
+  // CASL consent – required for SMS/email marketing in Canada
   sms_consent:  z.boolean().refine(val => val === true, {
-    message: 'SMS consent is required (TCPA compliance).',
+    message: 'SMS consent is required (CASL compliance).',
   }),
   email_consent: z.boolean().default(false),
 });
@@ -63,7 +64,7 @@ router.post('/', async (req, res) => {
     sms_consent:    data.sms_consent,
     email_consent:  data.email_consent,
     status:         'new',
-    region:         'US',
+    region: process.env.REGION || 'CA',
   };
 
   const { error } = await supabase.from('leads').insert(lead);
@@ -79,7 +80,7 @@ router.post('/', async (req, res) => {
     record_id:  lead.id,
     action:     'INSERT',
     payload:    { source: lead.source, status: lead.status },
-    region:     'US',
+    region: process.env.REGION || 'CA',
   });
 
   // Auto-create follow-up sequence
@@ -101,7 +102,7 @@ router.post('/', async (req, res) => {
       status:       'active',
       current_step: 0,
       next_run_at:  nextRunAt,
-      region:       'US',
+      region: process.env.REGION || 'CA',
     });
     console.log(`[leads] Sequence created for lead ${lead.id}`);
   } catch (seqErr) {
@@ -118,7 +119,7 @@ router.get('/:id', async (req, res) => {
     .from('leads')
     .select('id, full_name, email, phone, source, status, created_at, business_id')
     .eq('id', req.params.id)
-    .eq('region', 'US')
+    .eq('region', process.env.REGION || 'CA')
     .maybeSingle();
 
   if (error) return res.status(500).json({ error: error.message });
@@ -142,7 +143,7 @@ router.patch('/:id/status', async (req, res) => {
     .from('leads')
     .update({ status: parsed.data.status, updated_at: new Date().toISOString() })
     .eq('id', req.params.id)
-    .eq('region', 'US');
+    .eq('region', process.env.REGION || 'CA');
 
   if (error) return res.status(500).json({ error: error.message });
 
@@ -151,7 +152,7 @@ router.patch('/:id/status', async (req, res) => {
     record_id:  req.params.id,
     action:     'STATUS_CHANGE',
     payload:    { status: parsed.data.status },
-    region:     'US',
+    region: process.env.REGION || 'CA',
   });
 
   res.json({ ok: true, status: parsed.data.status });
