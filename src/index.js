@@ -78,7 +78,7 @@ app.use((err, req, res, next) => {
 
 // ── Start ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`[vitrineia-us] Running on port ${PORT} | NODE_ENV=${process.env.NODE_ENV} | REGION=${process.env.REGION}`);
+  console.log(`[vitrineia-ca] Running on port ${PORT} | NODE_ENV=${process.env.NODE_ENV} | REGION=${process.env.REGION}`);
 });
 
 module.exports = app;
