@@ -1,7 +1,7 @@
 {
   "name": "vitrineia-us",
   "version": "0.1.0",
-  "description": "VitrineIA US – lead capture, follow-up & booking system",
+  "description": "VitrineIA US \u2013 lead capture, follow-up & booking system",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -10,7 +10,8 @@
     "seed": "node supabase/seeds/med-spa.js",
     "lint": "eslint src/**/*.js",
     "worker": "node src/workers/sequence-worker.js",
-    "worker:watch": "nodemon src/workers/sequence-worker.js"
+    "worker:watch": "nodemon src/workers/sequence-worker.js",
+    "reminder": "node src/workers/reminder-worker.js"
   },
   "engines": {
     "node": ">=18.0.0"
