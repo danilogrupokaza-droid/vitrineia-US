@@ -75,7 +75,7 @@ async function createCheckoutSession({ business_id, lead_id, plan = 'starter', c
     return { ok: false, error: `Stripe price IDs not configured for plan: ${plan}. Set STRIPE_PRICE_${plan.toUpperCase()}_SETUP and STRIPE_PRICE_${plan.toUpperCase()}_MONTHLY in env.` };
   }
 
-  const appUrl = process.env.APP_URL || 'https://novuleads.com';
+  const appUrl = process.env.APP_URL_STRIPE || process.env.APP_URL || 'https://novuleads.com';
 
   try {
     const session = await stripe.checkout.sessions.create({
