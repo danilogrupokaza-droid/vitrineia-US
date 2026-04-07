@@ -25,7 +25,7 @@ async function seed() {
     state:       'FL',
     timezone:    'America/New_York',
     plan:        'starter',
-    region:      'US',
+    region:      'CA',
   }, { onConflict: 'slug' });
 
   if (bizErr) { console.error('❌ Business seed failed:', bizErr.message); process.exit(1); }
@@ -40,7 +40,7 @@ async function seed() {
     id:          uuidv4(),
     business_id: businessId,
     status:      'new',
-    region:      'US',
+    region:      'CA',
     ...l,
   }));
 
@@ -50,7 +50,7 @@ async function seed() {
 
   // ── Suppression example ──────────────────────────────────────
   const { error: supErr } = await supabase.from('suppression_list').upsert([
-    { contact: 'donotcontact@example.com', type: 'email', reason: 'manual', region: 'US' },
+    { contact: 'donotcontact@example.com', type: 'email', reason: 'manual', region: 'CA' },
   ], { onConflict: 'contact' });
   if (supErr) { console.error('❌ Suppression seed failed:', supErr.message); }
   else console.log('✅ Suppression list example added');
