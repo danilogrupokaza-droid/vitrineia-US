@@ -1,4 +1,5 @@
-# VitrineIA US
+[README.md](https://github.com/user-attachments/files/26543045/README.md)
+# VitrineIA CA
 
 > Sistema de captura de leads, follow-up e booking para small businesses nos EUA.
 > Stack: Node.js · Express · Supabase · Railway
@@ -9,7 +10,7 @@
 ## Estrutura do projeto
 
 ```
-vitrineia-us/
+vitrineia-ca/
 ├── config/
 │   └── supabase.js          # Cliente Supabase (US only) com guard de REGION
 ├── src/
@@ -36,8 +37,8 @@ vitrineia-us/
 ### 1. Clone e instale
 
 ```bash
-git clone https://github.com/SEU_ORG/vitrineia-us.git
-cd vitrineia-us
+git clone https://github.com/SEU_ORG/vitrineia-ca.git
+cd vitrineia-ca
 npm install
 ```
 
@@ -94,7 +95,7 @@ GET /health
 
 Resposta esperada:
 ```json
-{ "status": "ok", "region": "US", "db": "connected" }
+{ "status": "ok", "region": "CA", "db": "connected" }
 ```
 
 ### Criar lead
@@ -150,7 +151,7 @@ Status válidos: `new` · `contacted` · `qualified` · `booked` · `lost` · `u
 |---|---|
 | Repos separados | BR e US em repos distintos, nunca misturar |
 | Projetos Supabase separados | Um projeto por região |
-| `REGION=US` obrigatório | O servidor recusa iniciar sem essa variável |
+| `REGION=CA` obrigatório | O servidor recusa iniciar sem essa variável |
 | Sem variáveis BR aqui | Nenhuma chave `SUPABASE_BR_*` neste repo |
 | RLS ativado | Todas as tabelas com Row Level Security habilitado |
 
