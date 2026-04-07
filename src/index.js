@@ -12,7 +12,8 @@ const supabase = require('../config/supabase');
 const leadsRouter    = require('./routes/leads');
 const healthRouter   = require('./routes/health');
 const webhooksRouter = require('./routes/webhooks');
-const outreachRouter = require('./routes/outreach');
+const outreachRouter  = require('./routes/outreach');
+const calendlyRouter  = require('./routes/calendly');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -62,6 +63,7 @@ app.use('/health', healthRouter);
 app.use('/api/leads', leadsRouter);
 app.use('/webhooks', webhooksRouter);
 app.use('/api/outreach', outreachRouter);
+app.use('/webhooks/calendly', calendlyRouter);
 
 // ── 404 ───────────────────────────────────────────────────────
 app.use((req, res) => {
