@@ -1,5 +1,5 @@
 {
-  "name": "VitrineIA US – New Lead Flow",
+  "name": "VitrineIA CA – New Lead Flow",
   "nodes": [
     {
       "parameters": {
@@ -13,7 +13,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [240, 300],
-      "webhookId": "vitrineia-us-new-lead"
+      "webhookId": "vitrineia-ca-new-lead"
     },
     {
       "parameters": {
@@ -128,5 +128,5 @@
     }
   },
   "settings": { "executionOrder": "v1" },
-  "tags": [{ "name": "vitrineia-us" }]
+  "tags": [{ "name": "vitrineia-ca" }]
 }
