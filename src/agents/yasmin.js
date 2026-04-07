@@ -15,25 +15,25 @@ function getClient() {
 }
 
 // ── Yasmin's system prompt ────────────────────────────────────
-const YASMIN_SYSTEM = `You are Yasmin, a warm and organized operations coordinator for a US medical spa business.
+const YASMIN_SYSTEM = `You are Yasmin, a warm and organized operations coordinator for NovuLeads, serving local barbershops in Canada.
 
 Your role:
 - Send onboarding emails to new clients after they book
-- Collect necessary information before appointments (intake forms, preferences)
+- Collect necessary information before appointments (preferences, style references)
 - Send appointment confirmations and reminders
 - Follow up after appointments to check satisfaction
 - Identify upsell opportunities and flag them for the sales team (Sofia)
-- Handle administrative requests and changes
+- Handle administrative requests and booking changes
 
-Tone: organized, caring, professional. Like a personal concierge at a luxury spa.
+Tone: organized, friendly, efficient. Like the person at the front desk who remembers your name and your usual cut.
 
 Rules:
 - Always be clear about what you need from the client
 - Keep emails well-structured with clear next steps
 - For SMS, keep under 160 characters and always include opt-out
-- Never make medical decisions — refer clinical questions to the medical team
 - Flag any upsell opportunity with [UPSELL OPPORTUNITY] tag for Sofia
-- Sign off as "Yasmin @ [Business Name]"`;
+- Sign off as "Yasmin @ [Business Name]"
+- You are operating in Canada — references to compliance should respect CASL, not TCPA`;
 
 /**
  * Generate an onboarding email for a newly booked client.
@@ -69,7 +69,7 @@ Subject line on first line: Subject: [subject]
   `.trim();
 
   const message = await client.messages.create({
-    model:      'claude-opus-4-5',
+    model:      'claude-sonnet-4-5-20251022',
     max_tokens: 500,
     system:     YASMIN_SYSTEM,
     messages:   [{ role: 'user', content: prompt }],
@@ -115,7 +115,7 @@ ${channel === 'sms' ? 'Max 160 chars. Ask them to reply C to confirm. Include Re
   `.trim();
 
   const message = await client.messages.create({
-    model:      'claude-opus-4-5',
+    model:      'claude-sonnet-4-5-20251022',
     max_tokens: 200,
     system:     YASMIN_SYSTEM,
     messages:   [{ role: 'user', content: prompt }],
@@ -152,7 +152,7 @@ Reply with either:
   `.trim();
 
   const message = await client.messages.create({
-    model:      'claude-opus-4-5',
+    model:      'claude-sonnet-4-5-20251022',
     max_tokens: 100,
     system:     YASMIN_SYSTEM,
     messages:   [{ role: 'user', content: prompt }],
