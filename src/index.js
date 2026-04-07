@@ -13,7 +13,10 @@ const leadsRouter    = require('./routes/leads');
 const healthRouter   = require('./routes/health');
 const webhooksRouter = require('./routes/webhooks');
 const outreachRouter  = require('./routes/outreach');
-const calendlyRouter  = require('./routes/calendly');
+const calendlyRouter      = require('./routes/calendly');
+const paymentsRouter      = require('./routes/payments');
+const stripeWebhookRouter = require('./routes/stripe-webhook');
+const setupRouter         = require('./routes/setup');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -44,6 +47,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── Stripe webhook (raw body — MUST be before express.json()) ────
+app.use('/webhooks/stripe', stripeWebhookRouter);
+
 // ── Rate limiting ─────────────────────────────────────────────
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -64,6 +70,8 @@ app.use('/api/leads', leadsRouter);
 app.use('/webhooks', webhooksRouter);
 app.use('/api/outreach', outreachRouter);
 app.use('/webhooks/calendly', calendlyRouter);
+app.use('/api/payments', paymentsRouter);
+app.use('/api/setup',    setupRouter);
 
 // ── 404 ───────────────────────────────────────────────────────
 app.use((req, res) => {
