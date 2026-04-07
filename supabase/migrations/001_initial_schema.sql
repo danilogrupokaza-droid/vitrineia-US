@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- VitrineIA US – Supabase Migration v001
+-- VitrineIA CA – Supabase Migration v001
 -- Run this in the Supabase SQL Editor of the US project ONLY.
 -- This schema is intentionally separate from any BR project.
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ create table businesses (
   timezone     text not null default 'America/New_York',
   plan         text not null default 'starter',  -- starter | growth | full
   active       boolean not null default true,
-  region       char(2) not null default 'US',
+  region       char(2) not null default 'CA',
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
@@ -60,7 +60,7 @@ create table leads (
   sms_consent    boolean not null default false,
   email_consent  boolean not null default false,
   opted_out_at   timestamptz,                    -- set when lead unsubscribes
-  region         char(2) not null default 'US',
+  region         char(2) not null default 'CA',
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now(),
   -- Prevent duplicate leads per business
@@ -83,7 +83,7 @@ create table sequences (
   next_run_at  timestamptz,
   started_at   timestamptz not null default now(),
   completed_at timestamptz,
-  region       char(2) not null default 'US',
+  region       char(2) not null default 'CA',
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
@@ -101,7 +101,7 @@ create table sequence_events (
   sent_at      timestamptz not null default now(),
   status       text not null default 'sent',     -- sent | delivered | bounced | failed
   provider_id  text,                             -- Twilio SID or Resend message ID
-  region       char(2) not null default 'US'
+  region       char(2) not null default 'CA'
 );
 
 -- ── bookings ──────────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ create table bookings (
   status        booking_status not null default 'pending',
   notes         text,
   source        text default 'landing_page',     -- how the booking was made
-  region        char(2) not null default 'US',
+  region        char(2) not null default 'CA',
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
@@ -131,7 +131,7 @@ create table suppression_list (
   type        text not null,                     -- 'email' | 'sms'
   reason      text not null default 'unsubscribe', -- unsubscribe | bounce | spam | manual
   created_at  timestamptz not null default now(),
-  region      char(2) not null default 'US'
+  region      char(2) not null default 'CA'
 );
 
 create index idx_suppression_contact on suppression_list(contact);
@@ -144,7 +144,7 @@ create table audit_log (
   action      text not null,                    -- INSERT | UPDATE | STATUS_CHANGE | DELETE
   payload     jsonb,
   created_at  timestamptz not null default now(),
-  region      char(2) not null default 'US'
+  region      char(2) not null default 'CA'
 );
 
 create index idx_audit_log_record on audit_log(table_name, record_id);
