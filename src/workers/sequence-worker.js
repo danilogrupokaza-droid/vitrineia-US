@@ -10,6 +10,7 @@ require('dotenv').config();
 
 const supabase          = require('../../config/supabase');
 const { sendSMS }       = require('../services/sms');
+const { sendEmail }     = require('../services/email');
 const { getTemplate }   = require('../services/sequences');
 
 const WORKER_BATCH = 20; // max sequences to process per run
@@ -26,7 +27,7 @@ async function runWorker() {
       businesses ( id, name, niche, plan, timezone )
     `)
     .eq('status', 'active')
-    .eq('region', 'US')
+    .eq('region', process.env.REGION || 'CA')
     .lte('next_run_at', new Date().toISOString())
     .limit(WORKER_BATCH);
 
