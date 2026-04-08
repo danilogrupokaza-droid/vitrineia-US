@@ -18,15 +18,16 @@ const paymentsRouter      = require('./routes/payments');
 const stripeWebhookRouter = require('./routes/stripe-webhook');
 const setupRouter         = require('./routes/setup');
 
-const { runWorker } = require('./workers/sequence-worker');
+const { runWorker }         = require('./workers/sequence-worker');
+const { runOutreachWorker } = require('./workers/outreach-worker');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// ── Trust proxy (required on Railway / behind reverse proxy) ──
+// ── Trust proxy (required on Railway) ────────────────────────
 app.set('trust proxy', 1);
 
-// ── CORS manual (before everything, including helmet) ─────────
+// ── CORS ──────────────────────────────────────────────────────
 app.use((req, res, next) => {
   const origin = req.headers.origin || '';
   const allowed =
@@ -43,14 +44,11 @@ app.use((req, res, next) => {
     res.setHeader('Vary', 'Origin');
   }
 
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 
-// ── Stripe webhook (raw body — MUST be before express.json()) ──
+// ── Stripe webhook (raw body — MUST be before express.json()) ─
 app.use('/webhooks/stripe', stripeWebhookRouter);
 
 // ── Rate limiting ─────────────────────────────────────────────
@@ -68,18 +66,16 @@ app.use(express.json({ limit: '50kb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // ── Routes ────────────────────────────────────────────────────
-app.use('/health',           healthRouter);
-app.use('/api/leads',        leadsRouter);
-app.use('/webhooks',         webhooksRouter);
-app.use('/api/outreach',     outreachRouter);
+app.use('/health',            healthRouter);
+app.use('/api/leads',         leadsRouter);
+app.use('/webhooks',          webhooksRouter);
+app.use('/api/outreach',      outreachRouter);
 app.use('/webhooks/calendly', calendlyRouter);
-app.use('/api/payments',     paymentsRouter);
-app.use('/api/setup',        setupRouter);
+app.use('/api/payments',      paymentsRouter);
+app.use('/api/setup',         setupRouter);
 
 // ── 404 ───────────────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found.' });
-});
+app.use((req, res) => res.status(404).json({ error: 'Route not found.' }));
 
 // ── Global error handler ──────────────────────────────────────
 app.use((err, req, res, next) => {
@@ -91,18 +87,22 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`[vitrineia-us] Running on port ${PORT} | NODE_ENV=${process.env.NODE_ENV} | REGION=${process.env.REGION}`);
 
-  // ── Sequence worker (runs every 5 minutes) ──────────────────
-  const WORKER_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-
-  // Run once on startup to catch any pending sequences
-  runWorker().catch(err => console.error('[worker] Startup run failed:', err));
-
-  // Then keep running on interval
+  // ── Sequence worker — roda a cada 5 min ───────────────────
+  runWorker().catch(err => console.error('[sequence-worker] Startup error:', err));
   setInterval(() => {
-    runWorker().catch(err => console.error('[worker] Interval run failed:', err));
-  }, WORKER_INTERVAL_MS);
+    runWorker().catch(err => console.error('[sequence-worker] Error:', err));
+  }, 5 * 60 * 1000);
+  console.log('[sequence-worker] Scheduled every 5 minutes');
 
-  console.log(`[worker] Sequence worker scheduled every ${WORKER_INTERVAL_MS / 60000} minutes`);
+  // ── Outreach worker — roda a cada 30 min ─────────────────
+  // Delay de 10s no startup para não sobrecarregar junto com o sequence
+  setTimeout(() => {
+    runOutreachWorker().catch(err => console.error('[outreach-worker] Startup error:', err));
+    setInterval(() => {
+      runOutreachWorker().catch(err => console.error('[outreach-worker] Error:', err));
+    }, 30 * 60 * 1000);
+    console.log('[outreach-worker] Scheduled every 30 minutes');
+  }, 10000);
 });
 
 module.exports = app;
