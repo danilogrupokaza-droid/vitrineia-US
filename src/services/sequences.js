@@ -70,7 +70,7 @@ const SEQUENCES = {
         `${lead.first_name}, this is your final reminder from ${business.name}. Free consultation available — no commitment, just honest advice. Reply BOOK or call us. Reply STOP to opt out.`,
     },
   ],
-};
+  // (barber templates continue below)
 
   // ── Barbershop · Starter (3-step SMS) ────────────────────────
   barber_starter: [
